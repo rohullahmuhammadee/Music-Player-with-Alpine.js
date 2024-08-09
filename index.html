@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Music Player</title>
+
+    <script src="https://unpkg.com/alpinejs" defer></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+</head>
+
+<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen">
+    <div x-data="musicPlayer()" class="bg-gray-800 rounded-lg shadow-lg p-6 w-96">
+        <h1 class="text-xl font-bold mb-4 text-center">Music Player</h1>
+
+        <!-- Song Information and Thumbnail -->
+        <div class="mb-10 text-center">
+            <!-- <img x-bind:src="thumbnail" alt="Song Thumbnail" class="w-48 h-48 object-cover rounded-lg mb-2" x-show="thumbnail"> -->
+            <p class="text-lg" x-text="songs[currentIndex].title"></p>
+            <p class="text-sm text-gray-400" x-text="songs[currentIndex].artist"></p>
+        </div>
+
+        <!-- <canvas x-ref="canvas" width="300" height="100" class="bg-gray-900 rounded-lg mb-4"></canvas> -->
+
+
+        <!-- Progress Bar -->
+        <div class="my-4">
+            <input type="range" min="0" max="100" step="0.5" x-model="progress" @input="seek"
+                class="w-full bg-gray-600 rounded-lg">
+            <div class="flex justify-between text-sm text-gray-400">
+                <span x-text="formatTime(currentTime)"></span>
+                <span x-text="formatTime(duration)"></span>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="flex items-center justify-between">
+            <button @click="prev" class="p-3 rounded-full bg-gray-700 hover:bg-gray-600">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor" class="size-6">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M21 16.811c0 .864-.933 1.406-1.683.977l-7.108-4.061a1.125 1.125 0 0 1 0-1.954l7.108-4.061A1.125 1.125 0 0 1 21 8.689v8.122ZM11.25 16.811c0 .864-.933 1.406-1.683.977l-7.108-4.061a1.125 1.125 0 0 1 0-1.954l7.108-4.061a1.125 1.125 0 0 1 1.683.977v8.122Z" />
+                </svg>
+
+            </button>
+            <button @click="togglePlay" class="p-2 rounded-full bg-gray-700 hover:bg-gray-600">
+                <svg x-show="!isPlaying" class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M14.752 11.168l-6.336-3.584A1 1 0 007 8.418v7.164a1 1 0 001.416.91l6.336-3.584a1 1 0 000-1.746z">
+                    </path>
+                </svg>
+                <svg x-show="isPlaying" class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6"></path>
+                </svg>
+            </button>
+            <button @click="next" class="p-3 rounded-full bg-gray-700 hover:bg-gray-600">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor" class="size-6">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M3 8.689c0-.864.933-1.406 1.683-.977l7.108 4.061a1.125 1.125 0 0 1 0 1.954l-7.108 4.061A1.125 1.125 0 0 1 3 16.811V8.69ZM12.75 8.689c0-.864.933-1.406 1.683-.977l7.108 4.061a1.125 1.125 0 0 1 0 1.954l-7.108 4.061a1.125 1.125 0 0 1-1.683-.977V8.69Z" />
+                </svg>
+            </button>
+        </div>
+
+
+        <!-- Volume Control -->
+        <div class="flex items-center mt-4 justify-between">
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor" class="size-5">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M17.25 9.75 19.5 12m0 0 2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6 4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z" />
+                </svg>
+            </div>
+            <div class="w-9/12 pt-1">
+                <input type="range" min="0" max="1" step="0.01" x-model="volume" @input="setVolume"
+                    class="w-full bg-gray-600 rounded-lg">
+            </div>
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor" class="size-5">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M19.114 5.636a9 9 0 0 1 0 12.728M16.463 8.288a5.25 5.25 0 0 1 0 7.424M6.75 8.25l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z" />
+                </svg>
+            </div>
+        </div>
+
+
+
+        <!-- Dropdown for Music Selection -->
+        <div class="relative mt-4">
+            <button @click="toggleDropdown" class="w-full p-2 rounded-full bg-gray-700 hover:bg-gray-600 text-center">
+                <span>Select Music</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 inline-block ml-2" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+            <div x-show="dropdownOpen" @click.away="dropdownOpen = false"
+                class="absolute mt-2 w-full bg-gray-700 rounded-lg shadow-lg z-10">
+                <ul>
+                    <template x-for="(song, index) in songs" :key="index">
+                        <li @click="selectSong(index)" class="p-2 hover:bg-gray-600 cursor-pointer">
+                            <span x-text="song.title"></span>
+                        </li>
+                    </template>
+                </ul>
+            </div>
+        </div>
+
+
+        <!-- Audio Element -->
+        <audio @loadedmetadata="setDuration" x-ref="audio" @timeupdate="updateProgress" @ended="next"></audio>
+    </div>
+
+    <script>
+        function musicPlayer() {
+            return {
+                currentIndex: 0,
+                isPlaying: false,
+                progress: 0,
+                currentTime: 0,
+                duration: 0,
+                volume: 0.5, // Default volume level
+                dropdownOpen: false,
+                isMuted: false,
+
+                songs: [
+                    { title: 'Amin Rostami Delbar', artist: 'Amin Rostami', src: 'src/musics/Amin Rostami Delbar.mp3', thumbnail: '' },
+                    // { title: 'Amin Rostami Nabaar Baroon', artist: 'Amin Rostami', src: 'src/musics/Amin Rostami Nabaar Baroon.mp3', thumbnail: '' },
+                    // { title: 'Ehaam - Soltane Ghalbe Man', artist: 'Ehaam', src: 'src/musics/Ehaam - Soltane Ghalbe Man.mp3', thumbnail: '' },
+                    // { title: 'Farhad Darya - Gardeshe Chashme Siahe Tu', artist: 'Farhad Darya', src: 'src/musics/Farhad Darya - Gardeshe Chashme Siahe Tu .mp3', thumbnail: '' },
+                    // { title: 'Kabul - Dawood Sarkhosh  2019', artist: 'Dawood Sarkhosh', src: 'src/musics/Kabul - Dawood Sarkhosh  2019 کابل - داوود سرخوش.mp3', thumbnail: '' },
+                    // { title: 'Kabul door ast ki man salam at be koname', artist: 'Farhad Darya', src: 'src/musics/Kabul door ast ki man salam at be koname(Farhad Darya).mp3', thumbnail: '' }
+                ],
+                toggleMute() {
+                    this.isMuted = !this.isMuted;
+                    this.$refs.audio.muted = this.isMuted;
+                },
+
+                play() {
+                    const audio = this.$refs.audio;
+                    audio.src = this.songs[this.currentIndex].src;
+                    audio.play();
+
+                    this.isPlaying = true;
+                    audio.addEventListener('loadedmetadata', () => {
+                        this.duration = audio.duration;
+                    });
+                },
+
+                setVolume() {
+                    this.$refs.audio.volume = this.volume;
+                },
+
+                pause() {
+                    this.$refs.audio.pause();
+                    this.isPlaying = false;
+                },
+                togglePlay() {
+                    this.isPlaying ? this.pause() : this.play();
+                },
+                next() {
+                    this.currentIndex = (this.currentIndex + 1) % this.songs.length;
+                    this.play();
+                },
+                prev() {
+                    this.currentIndex = (this.currentIndex - 1 + this.songs.length) % this.songs.length;
+                    this.play();
+                },
+                updateProgress() {
+                    const audio = this.$refs.audio;
+                    this.currentTime = audio.currentTime;
+                    this.progress = (audio.currentTime / audio.duration) * 100;
+                },
+                seek() {
+                    const audio = this.$refs.audio;
+                    audio.currentTime = (this.progress / 100) * audio.duration;
+                },
+                setDuration() {
+                    const audio = this.$refs.audio;
+                    this.duration = audio.duration;
+                },
+                formatTime(seconds) {
+                    if (isNaN(seconds) || seconds === Infinity) {
+                        return '00:00';
+                    }
+                    const minutes = Math.floor(seconds / 60);
+                    const secs = Math.floor(seconds % 60).toString().padStart(2, '0');
+                    return `${minutes}:${secs}`;
+                },
+                toggleDropdown() {
+                    this.dropdownOpen = !this.dropdownOpen;
+                },
+                selectSong(index) {
+                    this.currentIndex = index;
+                    this.play();
+                    this.dropdownOpen = false;
+                }
+            };
+        }
+    </script>
+
+</body>
+
+</html>
