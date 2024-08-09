@@ -20,6 +20,11 @@ No installation is necessary. This project is entirely contained in a single `in
 1. Clone this repository or download the `index.html` file.
 2. Open the `index.html` file in your web browser.
 
+## Screenshot
+
+![Screenshot of the Music Player](screenshot.png)
+
+
 ### Folder Structure
 
 ```plaintext
@@ -34,4 +39,5 @@ No installation is necessary. This project is entirely contained in a single `in
 │   │   ├── backward-solid.svg
 │   │   └── other-icons.svg
 ├── index.html
+├── screenshot.png
 └── README.md
