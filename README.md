@@ -22,7 +22,7 @@ No installation is necessary. This project is entirely contained in a single `in
 
 ## Screenshot
 
-![Screenshot of the Music Player](screenshot.png)
+![Screenshot of the Music Player](/Screenshot.png)
 
 
 ### Folder Structure
